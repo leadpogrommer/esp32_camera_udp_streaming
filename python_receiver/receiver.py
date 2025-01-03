@@ -37,11 +37,11 @@ def udp_recv(listen_addr, target_addr):
             if chunks.startswith(b'\xff\xd8\xff'):
                 if eoi >= 0:
                     chunks += msg[:eoi+2]
-                    print(time.perf_counter(), "Complete picture")
+                    print(time.perf_counter(), "Complete picture wtf")
                     eoi = -1
                 else:
                     chunks += msg[:soi]
-                    print(time.perf_counter(), "Incomplete picture")
+                    print(time.perf_counter(), "Incomplete picture wtf")
                 try:
                     frame_q.put(chunks, timeout=1)
                 except Exception as e:

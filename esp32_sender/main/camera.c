@@ -69,9 +69,9 @@ esp_err_t init_camera(void)
     sensor_t *s = esp_camera_sensor_get();
 
     // drop down frame size for higher initial frame rate
-    s->set_framesize(s, FRAMESIZE_CIF);
+    // s->set_framesize(s, FRAMESIZE_CIF);
     // s->set_framesize(s, FRAMESIZE_QVGA);
-    // s->set_framesize(s, FRAMESIZE_VGA);
+    s->set_framesize(s, FRAMESIZE_VGA);
     // s->set_framesize(s, FRAMESIZE_XGA);
     // s->set_framesize(s, FRAMESIZE_HD);
     // s->set_framesize(s, FRAMESIZE_SXGA);
@@ -83,6 +83,7 @@ esp_err_t init_camera(void)
 #if USE_NETCONN
 struct netconn *camera_conn;
 struct ip_addr peer_addr;
+int peer_port;
 #else
 static int camera_sock;
 static struct sockaddr_in senderinfo;
@@ -114,7 +115,7 @@ static void camera_tx(void *param)
         size_t total = fb->len;
         size_t send = 0;
 
-        // ESP_LOGI(TAG, "send %d", total);
+        ESP_LOGI(TAG, "send %d", total);
 
         for (; send < total;)
         {
@@ -128,7 +129,7 @@ static void camera_tx(void *param)
             err_t err = netbuf_ref(txbuf, &buf[send], txlen);
             if (err == ERR_OK)
             {
-                err = netconn_sendto(camera_conn, txbuf, &peer_addr, 55556);
+                err = netconn_sendto(camera_conn, txbuf, &peer_addr, peer_port);
                 if (err == ERR_OK)
                 {
                     send += txlen;
@@ -232,6 +233,8 @@ void start_camera(void)
                 if (data[0] == 0x55)
                 {
                     peer_addr = *netbuf_fromaddr(rxbuf);
+                    peer_port =  netbuf_fromport(rxbuf);
+                    printf("peer_port = %d\n",peer_port);
                     ESP_LOGI(TAG, "peer %lx", peer_addr.u_addr.ip4.addr);
 
                     ESP_LOGI(TAG, "Trigged!");

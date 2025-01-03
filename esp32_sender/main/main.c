@@ -15,6 +15,8 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "mdns.h"
+#include "esp_mac.h"
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
@@ -148,11 +150,29 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
 
+    
+
     ESP_LOGI(TAG, "Init Camera");
     init_camera();
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
+
+
+    // begin mdns
+    esp_err_t err = mdns_init();
+    if (err) {
+        printf("MDNS Init failed: %d\n", err);
+        return;
+    }
+    //set hostname
+    uint8_t mac[6];
+    char name[20];
+    esp_read_mac(mac, ESP_MAC_EFUSE_FACTORY);
+    sprintf(name, "cam-%02X", mac[5]);
+    mdns_hostname_set(name);
+    printf("My addr is %s", name);
+    // end mdns
 
     ESP_LOGI(TAG, "Start Camera");
     start_camera();
